@@ -1,6 +1,6 @@
 # API contract (shared)
 
-Status: AGREED. All items below are confirmed by the team for version 1. Change this file only after all three members agree.
+Status: AGREED. Every item is confirmed by the team for version 1. Change this file only after all three members agree.
 
 ## Conventions
 - Every protected endpoint needs `Authorization: Bearer <session_token>`. The server finds the student from the token. The browser never sends a student ID.
@@ -59,6 +59,14 @@ Accounts turns `main_points` into clean Markdown and stores it as `content`.
 Success: `{"status": "saved"}`
 Sent only when the student asks to save an explanation as a note.
 
+### POST /internal/results — Confirmed
+Owner: Person 3 (accounts/). Called only by ai/. Not reachable from the browser.
+Header: `X-Service-Secret: <shared secret from .env>`.
+Purpose: store every quiz, exam, and checkpoint attempt, so results views and the 24-hour retry check have data.
+Request: `{"student_id": "...", "attempt_type": "quiz | exam | checkpoint", "module_id": "module-1", "score": 12, "total": 15, "band": "good", "level": "medium", "attempted_at": "2026-11-20T10:00:00Z"}`
+`band` is only for exams and checkpoints. `level` is only for quizzes.
+Success: `{"status": "saved"}`
+
 ### GET /notes
 Owner: Person 3. Requires the student's Bearer token. Read-only for students.
 Response: a list of notes, newest first, each with `module_name`, `topic`, and `content` (Markdown).
@@ -97,7 +105,7 @@ After the 15th question, the response returns the score instead of a next questi
 `level` is decided by ai/ code: starts at medium, up after 2 correct in a row, down after a miss. The final level sets the module final exam's difficulty. The quiz never passes a module.
 
 ### POST /exam/start
-Owner: Person 2. Request: `{"module_id": "module-1"}`. Uses the two standard-check results to pick difficulty. Returns 30 questions with no answers shown.
+Owner: Person 2. Request: `{"module_id": "module-1"}`. Uses the final levels of the two standard-check quizzes. The exam questions come from every level between those two levels, inclusive. For example, quizzes ending at medium and hard give a mix of medium and hard questions. Returns 30 questions with no answers shown.
 
 ### POST /exam/submit
 Owner: Person 2. Request: `{"exam_id": "...", "answers": [{"question_id": "...", "answer": "..."}]}`
@@ -110,7 +118,7 @@ Same pattern as the module exam. Not in version 1. Add when Module 5 is built.
 ## Decisions log
 1. ai/ calculates progress from passed final exams and checkpoints, out of 10 modules.
 2. Google login and password reset are out of version 1.
-3. Quiz is one endpoint, POST /quiz/answer. Key is checked, then saved.
+3. The quiz uses two endpoints: POST /quiz/start to get the first question, and POST /quiz/answer for each answer. The key is checked, then saved.
 4. Notes content comes from ai/ main points, designed by Praharshini.
 5. ai/ sends a note only when the student asks to save it.
 6. Note fields are module_name, topic, and content (Markdown).
@@ -120,4 +128,5 @@ Same pattern as the module exam. Not in version 1. Add when Module 5 is built.
 10. Backend in Python (FastAPI), frontend in React, database PostgreSQL. See the Stack section in the root CLAUDE.md.
 11. 2 standard-check quizzes per module (15 questions, understanding target 12, informational only) set the final exam difficulty. Module final exam: 30 questions, +1 per correct answer. 0 to 14 can improve with no retry for 24 hours. 15 to 24 good, retry straight away. 25 to 30 excellent, next module unlocks and the bar moves up.
 12. The quiz and exam endpoints are listed above.
-13. Checkpoint exams (after Module 5 and later) are 30 questions. Score 25 to 30 continues to the next module. Score 24 or below waits 24 hours before retry. No straight retry. Version 1 has no checkpoint.
+14. Module exam difficulty comes from the levels between the two standard-check quiz results, inclusive. Quiz results are also kept by ai/, so the tutor can adjust how it explains things to each student's level.
+15. Checkpoint exams (after Module 5 and later) are 30 questions. Score 25 to 30 continues to the next module. Score 24 or below waits 24 hours before retry. No straight retry. Version 1 has no checkpoint.

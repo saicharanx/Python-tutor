@@ -7,6 +7,8 @@ Read the root CLAUDE.md first.
 - Calls to the AI provider (Groq, the only provider in version 1), with the model name in one config file
 - The checker: syntax check with ast.parse, then a run with `python -I` and a 3-second timeout
 - Syllabus data for Modules 1 to 3
+- Module exam difficulty: questions come from every level between the two standard-check quiz results, inclusive.
+- Keep each student's quiz results. The tutor uses them to adjust its explanations to the student's level, without giving answers.
 - Standard-check quizzes: 2 per module, 15 questions each. Understanding target 12 out of 15, informational only, no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The final level sets the difficulty of the module's final exam.
 - Module final exams: 30 questions, +1 per correct answer, no negative marks. 0 to 14: can improve, no retry for 24 hours. 15 to 24: good, retry straight away. 25 to 30: excellent, the next module unlocks.
 - Checkpoint exams (after Module 5 and later, not in version 1): 30 questions. 25 to 30 continues. 24 or below waits 24 hours. No straight retry.
