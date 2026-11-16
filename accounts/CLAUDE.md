@@ -8,7 +8,9 @@ Read the root CLAUDE.md first.
 - Key check: a real test request to the provider. Never a format-only check.
 - Database design (tables for students, keys, progress, notes)
 - Notes design: receive the AI's concept notes from ai/ and decide how they are stored and returned (GET /notes). Notes are read-only for students.
-- GET /progress, and saving progress per student account
+- Endpoints you own: POST /auth/register, POST /auth/login, POST /auth/logout, POST /api-key/check, POST /api-key/save, GET /progress, GET /notes
+- Internal endpoints you own, called only by ai/ with the X-Service-Secret header: POST /internal/progress and POST /notes
+- Saving progress per student account, as received from ai/
 - Results views for the team (for example, quiz results)
 
 ## Rules for this folder

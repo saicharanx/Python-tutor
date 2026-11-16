@@ -40,7 +40,7 @@ Not in version 1: Google login, password reset, Modules 4 to 10, Markdown flowch
 
 ## Who owns what
 - Jeevan (Person 1): frontend/. Makes the whole app look good and easy to understand: sign-up/log-in page, key entry screen, chat, playground card, progress bar placement, notes panel.
-- Sai Charan (Person 2): ai/. Tutor rules, Groq calls, code checker, level-check quiz, progress bar logic, syllabus data. Sends the AI's notes to Praharshini.
+- Sai Charan (Person 2): ai/. Tutor rules, Groq calls, code checker, standard-check quizzes, module final exams, checkpoint exams (later), progress calculation, syllabus data. Sends progress and the AI's notes to Praharshini.
 - Praharshini (Person 3): accounts/. Log-in, encrypted API keys and key check, database, notes design and storage (she shapes the AI's notes, then GET /notes returns them read-only to the frontend), progress and results storage, results views.
 
 Only edit your own folder. contracts/api.md is shared. Change it only after the other two agree.
@@ -60,7 +60,7 @@ Only edit your own folder. contracts/api.md is shared. Change it only after the 
 
 ## Known limits (do not hide these)
 - The checker runs student code with `python -I` and a 3-second timeout. This is not a secure sandbox. Do not put it on a public server until it is isolated.
-- The AI provider is under test (Groq). Keep the model name in one config file in ai/.
+- Groq is the only AI provider in version 1. Keep the model name in one config file in ai/.
 
 ## Working rules
 - One branch per person. Open a pull request when a piece works. One review before merge.
