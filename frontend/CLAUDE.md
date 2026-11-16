@@ -7,6 +7,7 @@ Read the root CLAUDE.md first.
 - Layout: notes panel (left), chat with playground card (middle), progress bar (top)
 - The playground card inside the chat, and the submit button
 - Showing the tutor's replies
+- Quiz and exam screens: questions, options, the quiz's end-of-quiz score, the exam score and band, and the 24-hour retry wait
 - Showing notes read-only, in the format GET /notes returns (from Praharshini). Students cannot edit, delete, or add notes.
 
 ## You call only

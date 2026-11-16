@@ -22,7 +22,7 @@ A web app for our college that teaches Python. A chat tutor explains a concept, 
 - Sign-up and log-in page (email and password)
 - After log-in, the student is asked for their Groq API key. It is checked with a real request before chat opens. Only one AI provider (Groq) in version 1.
 - Chat, with the code playground card inside it
-- Standard-check quizzes: 2 per module, 15 questions each. The understanding target is 12 out of 15. This is only to check whether the student understands the topic. There is no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The final level sets the difficulty of that module's final exam.
+- Standard-check quizzes: 2 per module, 15 questions each. The understanding target is 12 out of 15. This is only to check whether the student understands the topic. There is no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The two quizzes' final levels set the difficulty range of that module's final exam (see the contract, decision 13).
 - Final exam per module: 30 questions. +1 mark per correct answer, no negative marks.
   - 0 to 14 marks: can improve. No retry for 24 hours.
   - 15 to 24 marks: good, can improve. Retry straight away.
@@ -47,7 +47,7 @@ Only edit your own folder. contracts/api.md is shared. Change it only after the 
 
 ## Endpoints (full detail in contracts/api.md)
 - Person 2 (ai/): POST /chat, POST /submit, POST /quiz/start, POST /quiz/answer, POST /exam/start, POST /exam/submit
-- Person 3 (accounts/): POST /auth/register, POST /auth/login, POST /auth/logout, POST /api-key/check, POST /api-key/save, GET /progress, GET /notes, and the internal POST /internal/progress and POST /notes (called only by ai/)
+- Person 3 (accounts/): POST /auth/register, POST /auth/login, POST /auth/logout, POST /api-key/check, POST /api-key/save, GET /progress, GET /notes, and the internal POST /internal/progress, POST /notes, POST /internal/results, and GET /internal/results (called only by ai/)
 
 ## Rules (non-negotiable)
 1. Never give the full solution to an exercise. Guide with hints.
@@ -65,4 +65,4 @@ Only edit your own folder. contracts/api.md is shared. Change it only after the 
 ## Working rules
 - One branch per person. Open a pull request when a piece works. One review before merge.
 - If a request breaks a rule above, stop and say which rule.
-- Notes and progress are saved per student account, not in the browser.
+- Notes, progress, and quiz and exam results are saved per student account in accounts/, not in the browser. accounts/ is the only store for results.

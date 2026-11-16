@@ -8,8 +8,9 @@ Read the root CLAUDE.md first.
 - The checker: syntax check with ast.parse, then a run with `python -I` and a 3-second timeout
 - Syllabus data for Modules 1 to 3
 - Module exam difficulty: questions come from every level between the two standard-check quiz results, inclusive.
-- Keep each student's quiz results. The tutor uses them to adjust its explanations to the student's level, without giving answers.
-- Standard-check quizzes: 2 per module, 15 questions each. Understanding target 12 out of 15, informational only, no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The final level sets the difficulty of the module's final exam.
+- Read each student's results from accounts/ (GET /internal/results). Keep no copy of results. The tutor uses them to adjust its explanations to the student's level, without giving answers.
+- If saving a result to accounts/ fails, retry the save. Never decide retries or difficulty from a local copy.
+- Standard-check quizzes: 2 per module, 15 questions each. Understanding target 12 out of 15, informational only, no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The two quizzes' final levels set the difficulty range of the module's final exam (see the contract, decision 13).
 - Module final exams: 30 questions, +1 per correct answer, no negative marks. 0 to 14: can improve, no retry for 24 hours. 15 to 24: good, retry straight away. 25 to 30: excellent, the next module unlocks.
 - Checkpoint exams (after Module 5 and later, not in version 1): 30 questions. 25 to 30 continues. 24 or below waits 24 hours. No straight retry.
 - Progress never goes down. The progress bar increases only when a final exam or checkpoint is passed. Send progress to accounts/ with POST /internal/progress.
