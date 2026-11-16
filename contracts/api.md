@@ -1,6 +1,6 @@
 # API contract (shared)
 
-Status: MERGED DRAFT. Items marked **Proposed** come from Jeevan's or Praharshini's drafts. Items marked **OPEN** need a decision in the 30-minute call. Change this file only after all three agree.
+Status: AGREED by all three members for version 1. Items marked **Proposed** still need a final yes from the team before the first integration. Change this file only after all three agree.
 
 ## Conventions
 - **Proposed:** Every protected endpoint needs `Authorization: Bearer <session_token>`. The server finds the student from the token. The browser never sends a student ID.
@@ -37,17 +37,18 @@ The check is a real request to the provider. A format check is only a hint in th
 Owner: Person 3. The page calls `/api-key/check` first. Only if it passes does it call this endpoint with the same key.
 Request: `{"api_key": "..."}`. Response: `{"status": "saved"}`. The key is encrypted before storage and never returned.
 
-### Internal: get decrypted key for a session — OPEN (missing)
-Not a public endpoint. Used by ai/ code to call the provider. Must never be reachable from the browser. Agree on the function name and signature.
+### Internal: get_decrypted_key — Decided
+Not a public endpoint. Used by ai/ code to call the provider. Must never be reachable from the browser.
 
-### GET /progress — Proposed, with one OPEN point
-Success: `{"progress_percentage": 40, "completed_exercises": 8, "total_exercises": 20, "current_module": "Module 2"}`
+### GET /progress — Confirmed
+Success: `{"progress_percentage": 30, "modules_passed": 3, "total_modules": 10, "current_module": "Module 4"}`
+The bar counts modules out of 10, the whole course. progress_percentage = modules_passed / total_modules × 100.
 Decided: Sai Charan's ai/ code calculates progress, based on quiz results. It sends the result to accounts (see POST /internal/progress below). GET /progress returns the stored value to the frontend.
 
 ### POST /internal/progress — Confirmed
 Owner: Person 3 (accounts/). Called only by ai/. Not reachable from the browser.
 Header: `X-Service-Secret: <shared secret from .env>`. Missing or wrong secret: 401.
-Request: `{"student_id": "...", "progress_percentage": 40, "current_module": "Module 2", "completed_exercises": 8, "total_exercises": 20}`
+Request: `{"student_id": "...", "modules_passed": 3, "total_modules": 10, "progress_percentage": 30, "current_module": "Module 4"}`
 Success: `{"status": "saved"}`
 Unknown student: 400 with `{"message": "Student not found"}`
 Rules: progress never goes down. The progress bar increases only when a module is finished. Each quiz result is kept in quiz_results.
@@ -65,7 +66,6 @@ Response: a list of notes, newest first, each with `module_name`, `topic`, and `
 Example: `{"notes": [{"module_name": "Module 1", "topic": "Variables", "content": "## Variables\nA variable stores a value..."}]}`
 
 Limits (proposed): content up to 10,000 characters; up to 100 saved notes per student.
-Success: `{"notes": [{"module_name": "Module 1", "topic": "...", "content": "markdown text"}]}`
 Decided: Sai Charan's ai/ code picks the main points of each explanation and sends all of that information to accounts (POST /notes). Praharshini designs the final note format and returns it through GET /notes. Jeevan displays it read-only. The notes are for students to revise from, so they must be clear without extra help.
 Timing decided: ai/ asks the student whether the information should be saved as a note for later reading. Only if the student says yes is it sent to accounts. The exact note fields are decided by Praharshini.
 Flowcharts in notes: not in v1. Markdown text only.
@@ -95,8 +95,8 @@ The `passed` value is decided by ai/ code, never by the AI.
 ### POST /quiz/answer — Decided (one endpoint)
 Owner: Person 2 (ai/). Used by the level-check quiz.
 Request: `{"question_id": "q1", "answer": "..."}`
-Response: `{"correct": true, "level": "medium", "next_question": {"id": "q2", "text": "...", "options": ["..."]}, "module_passed": null}`
-`level` is decided by ai/ code: starts at medium, up after 2 correct in a row, down after a miss. `module_passed` is set only when a level is passed.
+Response: `{"correct": true, "level": "medium", "next_question": {"id": "q2", "text": "...", "options": ["..."]}}`
+`level` is decided by ai/ code: starts at medium, up after 2 correct in a row, down after a miss. The final level sets the module final exam's difficulty. The quiz never passes a module.
 
 ## Quizzes and exams (Person 2: Sai Charan) — Confirmed
 
@@ -116,16 +116,16 @@ If `band` is `excellent`: `next_module_unlocked: true`, and the server calls POS
 ### POST /checkpoint/start and POST /checkpoint/submit — Same pattern as the module exam. Not in version 1; add when Module 5 is built.
 
 ## Open decisions for the call
-1. Decided: ai/ calculates progress from quiz results.
+1. Decided: ai/ calculates progress from passed final exams and checkpoints, out of 10 modules.
 2. Decided: Google login and password reset are out of version 1.
 3. Decided: quiz is one endpoint, POST /quiz/answer. Key is checked, then saved.
 4. Decided: notes content comes from ai/ main points, designed by Praharshini.
 5. Decided: ai/ sends a note only when the student asks to save it.
-6. Open: the exact note fields (Praharshini).
+6. Decided: note fields are module_name, topic, and content (Markdown), as confirmed in the notes section.
 7. Decided: the internal key lookup is named get_decrypted_key.
 8. Decided: standard status codes (200, 400, 401, 500).
 9. Decided: ai/ sends progress to accounts with POST /internal/progress. Progress never goes down; the bar increases only when a module is finished.
 10. Decided: backend in Python (FastAPI), frontend in React, database PostgreSQL. See the Stack section in the root CLAUDE.md.
-11. Decided: 2 standard-check quizzes per module (15 questions, pass mark 12, informational only) set the final exam difficulty. Module final exam: 30 questions, +1 per correct answer. 0 to 14 can improve with no retry for 24 hours. 15 to 24 good, retry straight away. 25 to 30 excellent, next module unlocks and the bar moves up. See CLAUDE.md.
+11. Decided: 2 standard-check quizzes per module (15 questions, understanding target 12, informational only) set the final exam difficulty. Module final exam: 30 questions, +1 per correct answer. 0 to 14 can improve with no retry for 24 hours. 15 to 24 good, retry straight away. 25 to 30 excellent, next module unlocks and the bar moves up. See CLAUDE.md.
 12. Decided: the quiz and exam endpoints listed above.
 13. Decided: checkpoint exams (after Module 5 and later) are 30 questions. Score 25 to 30 continues to the next module. Score 24 or below waits 24 hours before retry. No straight retry. Version 1 has no checkpoint. See CLAUDE.md.

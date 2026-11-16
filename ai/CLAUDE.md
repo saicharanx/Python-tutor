@@ -7,8 +7,10 @@ Read the root CLAUDE.md first.
 - Calls to the AI provider (Groq under test), with the model name in one config file
 - The checker: syntax check with ast.parse, then a run with `python -I` and a 3-second timeout
 - Syllabus data for Modules 1 to 3
-- The level-check quiz: starts at medium, up after 2 correct in a row, down after a miss
-- The progress rule: a module counts as passed only when its quiz level is passed, counted once
+- Standard-check quizzes: 2 per module, 15 questions each. Understanding target 12 out of 15, informational only, no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The final level sets the difficulty of the module's final exam.
+- Module final exams: 30 questions, +1 per correct answer, no negative marks. 0 to 14: can improve, no retry for 24 hours. 15 to 24: good, retry straight away. 25 to 30: excellent, the next module unlocks.
+- Checkpoint exams (after Module 5 and later, not in version 1): 30 questions. 25 to 30 continues. 24 or below waits 24 hours. No straight retry.
+- Progress never goes down. The progress bar increases only when a final exam or checkpoint is passed. Send progress to accounts/ with POST /internal/progress.
 - The progress bar logic (the number the frontend shows)
 - Sending the AI's concept notes to accounts/ (POST /notes). Praharshini designs how they are stored and shown.
 
