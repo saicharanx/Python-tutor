@@ -43,7 +43,7 @@ Not a public endpoint. Used by ai/ code to call the provider. Must never be reac
 ### GET /progress — Confirmed
 Success: `{"progress_percentage": 30, "modules_passed": 3, "total_modules": 10, "current_module": "Module 4"}`
 The bar counts modules out of 10, the whole course. progress_percentage = modules_passed / total_modules × 100.
-Decided: Sai Charan's ai/ code calculates progress, based on quiz results. It sends the result to accounts (see POST /internal/progress below). GET /progress returns the stored value to the frontend.
+Decided: Sai Charan's ai/ code calculates progress, based only on passed module final exams and checkpoints. Quizzes never change progress. It sends the result to accounts (see POST /internal/progress below). GET /progress returns the stored value to the frontend.
 
 ### POST /internal/progress — Confirmed
 Owner: Person 3 (accounts/). Called only by ai/. Not reachable from the browser.
@@ -115,7 +115,7 @@ If `band` is `excellent`: `next_module_unlocked: true`, and the server calls POS
 
 ### POST /checkpoint/start and POST /checkpoint/submit — Same pattern as the module exam. Not in version 1; add when Module 5 is built.
 
-## Open decisions for the call
+## Decisions log
 1. Decided: ai/ calculates progress from passed final exams and checkpoints, out of 10 modules.
 2. Decided: Google login and password reset are out of version 1.
 3. Decided: quiz is one endpoint, POST /quiz/answer. Key is checked, then saved.
