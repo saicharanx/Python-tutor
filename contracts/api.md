@@ -107,6 +107,7 @@ The `passed` value is decided by ai/ code, never by the AI.
 
 ### POST /quiz/start
 Owner: Person 2. Request: `{"module_id": "module-1"}`. Returns the first standard-check question with no answer shown.
+A quiz cannot be restarted or skipped. If the student has a quiz in progress, this returns the current question, so a student who leaves mid-quiz resumes at the same question. Quiz state is kept on the server.
 
 ### POST /quiz/answer
 Owner: Person 2. Request: `{"question_id": "q1", "answer": "..."}`
@@ -115,7 +116,7 @@ After the 15th question, the response is instead: `{"finished": true, "score": 1
 `level` is decided by ai/ code: starts at medium, up after 2 correct in a row, down after a miss. Each quiz's final level feeds the module exam's difficulty (decision 13). The quiz never passes a module.
 
 ### POST /exam/start
-Owner: Person 2. Request: `{"module_id": "module-1"}`. Uses the final levels of the two standard-check quizzes. The exam questions come from every level between those two levels, inclusive. For example, quizzes ending at medium and hard give a mix of medium and hard questions. Returns 30 questions with no answers shown.
+Owner: Person 2. Request: `{"module_id": "module-1"}`. Refuses with 400 and `{"message": "Finish both standard-check quizzes first"}` unless both quizzes for that module are finished. Uses the final levels of the two standard-check quizzes. The exam questions come from every level between those two levels, inclusive. For example, quizzes ending at medium and hard give a mix of medium and hard questions. Returns 30 questions with no answers shown.
 
 ### POST /exam/submit
 Owner: Person 2. Request: `{"exam_id": "...", "answers": [{"question_id": "...", "answer": "..."}]}`
@@ -139,4 +140,5 @@ Same pattern as the module exam. Not in version 1. Add when Module 5 is built.
 11. 2 standard-check quizzes per module (15 questions, understanding target 12, informational only) set the final exam difficulty. Module final exam: 30 questions, +1 per correct answer. 0 to 14 can improve with no retry for 24 hours. 15 to 24 good, retry straight away. 25 to 30 excellent, next module unlocks and the bar moves up.
 12. The quiz and exam endpoints are listed above.
 13. Module exam difficulty comes from the levels between the two standard-check quiz results, inclusive. Accounts stores all results. ai/ reads them back through GET /internal/results, so the tutor can adjust how it explains things to each student's level.
-14. Checkpoint exams (after Module 5 and later) are 30 questions. Score 25 to 30 continues to the next module. Score 24 or below waits 24 hours before retry. No straight retry. Version 1 has no checkpoint.
+14. Quizzes are part of the learning path. Once a quiz starts it cannot be restarted or skipped. A student who leaves mid-quiz resumes at the same question. The module exam cannot start until both quizzes for that module are finished (400 otherwise).
+15. Checkpoint exams (after Module 5 and later) are 30 questions. Score 25 to 30 continues to the next module. Score 24 or below waits 24 hours before retry. No straight retry. Version 1 has no checkpoint.
