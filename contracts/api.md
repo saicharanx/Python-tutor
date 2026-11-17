@@ -88,7 +88,8 @@ Praharshini designs the final note format. Jeevan displays it read-only. Notes m
 
 ### POST /chat
 Request: `{"message": "student text", "save_note": false}`
-Set `save_note` to true when the student says yes to saving the last explanation as a note. ai/ then sends that note to accounts (POST /notes).
+Set `save_note` to true when the student says yes to saving the last explanation as a note. In that case `message` may be empty. ai/ then sends that note to accounts (POST /notes).
+The offered note is kept in memory by ai/. If the server restarts or sleeps before the student says yes, the note is lost. The reply then is `{"reply": "That explanation is no longer available. Ask again and I'll explain it.", "note": null}`, and nothing is saved.
 The student ID is not sent. The token identifies the student. Progress is not sent. The server reads it.
 Response:
 ```json

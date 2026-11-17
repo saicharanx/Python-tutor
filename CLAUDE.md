@@ -61,7 +61,7 @@ Only edit your own folder. contracts/api.md is shared. Change it only after the 
 ## Known limits (do not hide these)
 - The checker runs student code with `python -I` and a 3-second timeout. This is not a secure sandbox. Do not put it on a public server until it is isolated.
 - Groq is the only AI provider in version 1. Keep the model name in one config file in ai/.
-- Quizzes and exams in progress are kept in memory on the AI server. If a free host restarts or sleeps, they are lost. Quiz resumption and exam submission depend on the server staying awake, so this is a known risk for the first deployment.
+- Quizzes, exams, and offered notes in progress are kept in memory on the AI server. If a free host restarts or sleeps, they are lost. Quiz resumption and exam submission depend on the server staying awake, so this is a known risk for the first deployment.
 
 ## Working rules
 - One branch per person. Open a pull request when a piece works. One review before merge.

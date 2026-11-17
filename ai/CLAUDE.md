@@ -14,6 +14,7 @@ Read the root CLAUDE.md first.
 - Standard-check quizzes: 2 per module, 15 questions each. Understanding target 12 out of 15, informational only, no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The two quizzes' final levels set the difficulty range of the module's final exam (see the contract, decision 13).
 - /exam/start refuses with 400 during a 24-hour wait, and after a module is passed with a 25 to 30 score. Return the reason in the message.
 - When the student says yes to saving a note, POST /chat arrives with save_note: true. Send that note to accounts/ (POST /notes).
+- The offered note is kept in memory. If the server restarts or sleeps before the yes, the note is lost. Reply with "That explanation is no longer available. Ask again and I'll explain it." and save nothing.
 - If an exam is in progress, /exam/start returns the same exam, never new questions. This stops a student from avoiding the 24-hour wait by starting again.
 - Module exams are kept in memory like quizzes. If the server restarts or sleeps during an exam, the exam is lost: submit returns 400 "Your exam was interrupted. Start the exam again." A lost exam is not saved and has no 24-hour wait.
 - Module final exams: 30 questions, +1 per correct answer, no negative marks. 0 to 14: can improve, no retry for 24 hours. 15 to 24: good, retry straight away. 25 to 30: excellent, the next module unlocks.

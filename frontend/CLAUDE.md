@@ -7,6 +7,7 @@ Read the root CLAUDE.md first.
 - Layout: notes panel (left), chat with playground card (middle), progress bar (top)
 - The playground card inside the chat, and the submit button
 - Showing the tutor's replies
+- The "Save this as a note?" prompt. Show it only when a /chat response has a non-null `note`. Yes sends POST /chat with `save_note: true` and an empty `message`. No sends nothing. Show the server's reply after either choice.
 - Quiz and exam screens: questions, options, the quiz's end-of-quiz score, the exam score and band, and the 24-hour retry wait
 - Showing notes read-only, in the format GET /notes returns (from Praharshini). Students cannot edit, delete, or add notes.
 
