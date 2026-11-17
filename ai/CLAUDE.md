@@ -8,11 +8,14 @@ Read the root CLAUDE.md first.
 - The checker: syntax check with ast.parse, then a run with `python -I` and a 3-second timeout
 - Syllabus data for Modules 1 to 3
 - Module exam difficulty: questions come from every level between the two standard-check quiz results, inclusive.
-- Read each student's results from accounts/ (GET /internal/results). Keep no copy of results. The tutor uses them to adjust its explanations to the student's level, without giving answers.
+- Read each student's results from accounts/ (GET /internal/results). Keep no copy of finished results. The tutor uses them to adjust its explanations to the student's level, without giving answers.
 - If saving a result to accounts/ fails, retry the save. Never decide retries or difficulty from a local copy.
 - Quizzes cannot be skipped by the student. Keep quiz state in memory, so a student who leaves mid-quiz resumes at the same question while the server stays running. If the server restarts or sleeps, an unfinished quiz begins again with fresh questions. Save only finished quizzes to accounts/. A module exam cannot start until both quizzes for that module are finished.
 - Standard-check quizzes: 2 per module, 15 questions each. Understanding target 12 out of 15, informational only, no pass or fail. During the quiz, the level goes up after 2 correct in a row and down after a miss. The two quizzes' final levels set the difficulty range of the module's final exam (see the contract, decision 13).
-- Module exams are kept in memory like quizzes. If the server restarts or sleeps during an exam, the exam is lost: submit returns 410 "Your exam was interrupted. Start the exam again." A lost exam is not saved and has no 24-hour wait.
+- /exam/start refuses with 400 during a 24-hour wait, and after a module is passed with a 25 to 30 score. Return the reason in the message.
+- When the student says yes to saving a note, POST /chat arrives with save_note: true. Send that note to accounts/ (POST /notes).
+- If an exam is in progress, /exam/start returns the same exam, never new questions. This stops a student from avoiding the 24-hour wait by starting again.
+- Module exams are kept in memory like quizzes. If the server restarts or sleeps during an exam, the exam is lost: submit returns 400 "Your exam was interrupted. Start the exam again." A lost exam is not saved and has no 24-hour wait.
 - Module final exams: 30 questions, +1 per correct answer, no negative marks. 0 to 14: can improve, no retry for 24 hours. 15 to 24: good, retry straight away. 25 to 30: excellent, the next module unlocks.
 - Checkpoint exams (after Module 5 and later, not in version 1): 30 questions. 25 to 30 continues. 24 or below waits 24 hours. No straight retry.
 - Progress never goes down. The progress bar increases only when a final exam or checkpoint is passed. Send progress to accounts/ with POST /internal/progress.

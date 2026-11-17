@@ -64,8 +64,8 @@ Sent only when the student asks to save an explanation as a note.
 Owner: Person 3 (accounts/). Called only by ai/. Not reachable from the browser.
 Header: `X-Service-Secret: <shared secret from .env>`.
 Purpose: store every quiz, exam, and checkpoint attempt, so results views and the 24-hour retry check have data.
-Request: `{"student_id": "...", "attempt_type": "quiz | exam | checkpoint", "module_id": "module-1", "score": 12, "total": 15, "band": "good", "level": "medium", "attempted_at": "2026-11-20T10:00:00Z"}`
-`band` is only for exams and checkpoints. `level` is only for quizzes.
+Request: `{"student_id": "...", "attempt_type": "quiz", "module_id": "module-1", "score": 12, "total": 15, "band": null, "level": "medium", "attempted_at": "2026-11-20T10:00:00Z"}`
+`attempt_type` is `quiz`, `exam`, or `checkpoint`. For quizzes, `band` is null and `level` is set. For exams and checkpoints, `band` is set and `level` is null.
 Success: `{"status": "saved"}`
 
 If a save fails, ai/ retries it. ai/ keeps no copy of results. Accounts is the only store.
@@ -87,7 +87,8 @@ Praharshini designs the final note format. Jeevan displays it read-only. Notes m
 ## AI tutor and exams (Person 2: Sai Charan)
 
 ### POST /chat
-Request: `{"message": "student text"}`
+Request: `{"message": "student text", "save_note": false}`
+Set `save_note` to true when the student says yes to saving the last explanation as a note. ai/ then sends that note to accounts (POST /notes).
 The student ID is not sent. The token identifies the student. Progress is not sent. The server reads it.
 Response:
 ```json
@@ -98,7 +99,7 @@ Response:
   "note": {"module_name": "Module 1", "topic": "...", "content": "markdown"}
 }
 ```
-`question`, `playground` and `note` can each be `null`.
+`question`, `playground` and `note` can each be `null`. `note` is the explanation the tutor offers to save.
 
 ### POST /submit
 Request: `{"question_id": "q1", "code": "..."}`. The question ID is required.
@@ -114,24 +115,26 @@ A student cannot restart or skip a quiz. If the student has a quiz in progress, 
 Owner: Person 2. Request: `{"question_id": "q1", "answer": "..."}`
 Response: `{"correct": true, "level": "medium", "next_question": {"id": "q2", "text": "...", "options": ["..."]}}`
 After the 15th question, the response is instead: `{"finished": true, "score": 12, "total": 15, "final_level": "medium"}`. ai/ then sends this attempt to POST /internal/results with `attempt_type: "quiz"`.
-`level` is decided by ai/ code: starts at medium, up after 2 correct in a row, down after a miss. Each quiz's final level feeds the module exam's difficulty (decision 13). The quiz never passes a module.
+Levels are easy, medium, and hard. `level` is decided by ai/ code: starts at medium, up after 2 correct in a row, down after a miss. Each quiz's final level feeds the module exam's difficulty (decision 13). The quiz never passes a module.
 
 ### POST /exam/start
-Owner: Person 2. Request: `{"module_id": "module-1"}`. Refuses with 400 and `{"message": "Finish both standard-check quizzes first"}` unless both quizzes for that module are finished. Uses the final levels of the two standard-check quizzes. The exam questions come from every level between those two levels, inclusive. For example, quizzes ending at medium and hard give a mix of medium and hard questions. Returns 30 questions with no answers shown.
+Owner: Person 2. Request: `{"module_id": "module-1"}`. Refuses with 400 and `{"message": "Finish both standard-check quizzes first"}` unless both quizzes for that module are finished. Uses the final levels of the two standard-check quizzes. The exam questions come from every level between those two levels, inclusive. For example, quizzes ending at medium and hard give a mix of medium and hard questions. Returns `{"exam_id": "...", "questions": [...]}` with 30 questions and no answers shown.
+If an exam for that module is already in progress, this returns the same exam. A student cannot get new questions by calling it again, so starting again cannot be used to avoid the 24-hour wait.
+While the 24-hour wait is running after a 0 to 14 score, this returns 400 with `{"message": "Next exam available at <retry_available_at>"}`. After a 25 to 30 score for that module, this returns 400 with `{"message": "This module is already passed"}`.
 
 ### POST /exam/submit
 Owner: Person 2. Request: `{"exam_id": "...", "answers": [{"question_id": "...", "answer": "..."}]}`
-Exams are kept in memory by ai/, like quizzes. If the server restarts or sleeps during an exam, the exam is lost. A submit for a lost exam returns 410 with `{"message": "Your exam was interrupted. Start the exam again."}`. A lost exam is not saved, so it has no 24-hour wait, and the student can start it again right away.
+Exams are kept in memory by ai/, like quizzes. If the server restarts or sleeps during an exam, the exam is lost. A submit for a lost exam returns 400 with `{"message": "Your exam was interrupted. Start the exam again."}`. A lost exam is not saved, so it has no 24-hour wait, and the student can start it again right away.
 Response: `score`, `band` (`can_improve` for 0 to 14, `good` for 15 to 24, `excellent` for 25 to 30), `retry_available_at` (now for 15 to 24; 24 hours later for 0 to 14; `null` for excellent). ai/ then sends this attempt to POST /internal/results.
 If `band` is `excellent`: `next_module_unlocked: true`, and the server calls POST /internal/progress.
 
 ### POST /checkpoint/start and POST /checkpoint/submit
-Same pattern as the module exam. Not in version 1. Add when Module 5 is built.
+Same question count and scoring as the module exam (30 questions, +1 per correct answer), with the checkpoint retry rules in decision 16. Not in version 1. Add when Module 5 is built.
 
 ## Decisions log
 1. ai/ calculates progress from passed final exams and checkpoints, out of 10 modules.
 2. Google login and password reset are out of version 1.
-3. The quiz uses two endpoints: POST /quiz/start to get the first question, and POST /quiz/answer for each answer. The key is checked, then saved.
+3. The quiz uses two endpoints: POST /quiz/start to get the first question, and POST /quiz/answer for each answer.
 4. Notes content comes from ai/ main points, designed by Praharshini.
 5. ai/ sends a note only when the student asks to save it.
 6. Note fields are module_name, topic, and content (Markdown).
